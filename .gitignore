@@ -1,0 +1,52 @@
+# --- Node / package managers ---
+node_modules/
+server/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.yarn/*
+!.yarn/releases/
+!.yarn/plugins/
+!.yarn/sdks/
+!.yarn/versions/
+
+# --- Builds / caches ---
+dist/
+server/dist/
+build/
+.cache/
+.vite/
+.parcel-cache/
+.eslintcache
+*.tsbuildinfo
+
+# --- Testing / coverage (optional; keep if you add tests) ---
+coverage/
+.playwright-report/
+test-results/
+
+# --- Env files (keep example) ---
+.env
+.env.*
+server/.env
+server/.env.*
+!.env.example
+
+# --- Editors / IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS cruft ---
+.DS_Store
+Thumbs.db
+
+# --- Misc (optional private stuff) ---
+private/
+
+# --- Prisma --- 
+server/prisma/dev.db
+server/prisma/dev.db-journal

@@ -1,0 +1,14 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:wedding-20251011@yousef-nada
+DTSTAMP:20240827T120000Z
+DTSTART:20251011T213000Z
+DTEND:20251012T033000Z
+SUMMARY:Yousef & Nada Wedding
+LOCATION:Ilderton Community Centre, 13168 Ilderton Rd, Ilderton, Ontario
+DESCRIPTION:We're so excited to celebrate our wedding with you at the Ilderton Community Centre in Ilderton, Ontario. Please come dressed formal / modest. The evening will include our entrance and zaffa, heartfelt speeches, Maghrib prayer, dinner, first dance and cake cutting, games, and dancing. We can't wait to share this special day with you!
+END:VEVENT
+END:VCALENDAR

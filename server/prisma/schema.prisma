@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Household {
+  id          String   @id @default(cuid())
+  label       String             // e.g., "Ouda Family"
+  phone       String             // E.164, e.g., +14165551234
+  phoneLast4  String   @db.VarChar(4)
+  createdAt   DateTime @default(now())
+  guests      Guest[]
+  otps        Otp[]
+
+  @@index([phoneLast4])
+}
+
+model Guest {
+  id           String   @id @default(cuid())
+  householdId  String
+  firstName    String
+  lastName     String
+  displayName  String   // shown after verification
+  rsvpStatus   String?  // 'yes' | 'no'
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  household Household @relation(fields: [householdId], references: [id])
+
+  @@index([householdId])
+  @@index([lastName, firstName])
+}
+
+model Otp {
+  id           String   @id @default(cuid())
+  householdId  String
+  codeHash     String
+  purpose      String   // 'rsvp'
+  expiresAt    DateTime
+  attempts     Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  household Household @relation(fields: [householdId], references: [id])
+
+  @@index([householdId])
+  @@index([expiresAt])
+}
