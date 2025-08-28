@@ -1,14 +1,14 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import './index.css'
+import { Analytics } from '@vercel/analytics/react'
+
 import App from './App'
+import Admin from './pages/Admin'
 import Home from './pages/Home'
-import Details from './pages/Details'
-import RSVP from './pages/RSVP'
 
 import '@fortawesome/fontawesome-free/css/all.min.css'
-import Admin from './pages/Admin'
+import './index.css'
 
 const router = createBrowserRouter([
   {
@@ -24,5 +24,6 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <RouterProvider router={router} />
+    <Analytics />
   </React.StrictMode>
 )
