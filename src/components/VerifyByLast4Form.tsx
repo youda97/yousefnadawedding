@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Card, SectionTitle, Label, TextInput, PrimaryButton } from './FormUI'
 
+const API = import.meta.env.VITE_API_BASE_URL || ''
+
 export const VerifyByLast4Form: React.FC<{
   onBack: () => void
   onOtpSent: () => void // advance to OTP screen if API says sent
@@ -22,7 +24,7 @@ export const VerifyByLast4Form: React.FC<{
     // If unique match found → send OTP (no phone revealed), return 204.
     // If not unique or not found → return 400 with a generic message.
     try {
-      const res = await fetch('/api/rsvp/otp/init', {
+      const res = await fetch(`${API}/api/rsvp/otp/init`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

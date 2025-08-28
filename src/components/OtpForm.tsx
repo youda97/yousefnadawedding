@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Card, SectionTitle, Label, TextInput, PrimaryButton } from './FormUI'
 
+const API = import.meta.env.VITE_API_BASE_URL || ''
+
 export const OtpForm: React.FC<{
   maskedPhone: string
   onVerify: () => void
@@ -21,7 +23,7 @@ export const OtpForm: React.FC<{
     setVerifying(true)
     try {
       // 1) Verify code
-      const v = await fetch('/api/rsvp/otp/verify', {
+      const v = await fetch(`${API}/api/rsvp/otp/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // IMPORTANT for cookies

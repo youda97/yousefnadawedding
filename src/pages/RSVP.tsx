@@ -8,6 +8,8 @@ import { HouseholdRsvpPage } from '../components/HouseholdRsvpPage'
 import { ConfirmationPage } from '../components/ConfirmationPage'
 import { VerifyByLast4Form } from '../components/VerifyByLast4Form'
 
+const API = import.meta.env.VITE_API_BASE_URL || ''
+
 export default function RSVP() {
   const [step, setStep] = useState<Step>('find')
   const [direction, setDirection] = useState(1)
@@ -24,7 +26,7 @@ export default function RSVP() {
   }
 
   async function handleSubmitAll(guests: Guest[]) {
-    await fetch('/api/rsvp/submit', {
+    await fetch(`${API}/api/rsvp/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -70,7 +72,7 @@ export default function RSVP() {
                 maskedPhone="your phone number"
                 onVerify={async () => {
                   // 1) fetch verified household
-                  const res = await fetch('/api/rsvp/household', {
+                  const res = await fetch(`${API}/api/rsvp/household`, {
                     credentials: 'include',
                   })
                   if (!res.ok) {

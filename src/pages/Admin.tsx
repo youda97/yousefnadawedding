@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
+const API = import.meta.env.VITE_API_BASE_URL || ''
+
 type Row = {
   id: string
   fullName: string
@@ -30,7 +32,7 @@ export default function Admin() {
   async function login(e: React.FormEvent) {
     e.preventDefault()
     setLoginError(null)
-    const res = await fetch('/api/admin/login', {
+    const res = await fetch(`${API}/api/admin/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -46,9 +48,13 @@ export default function Admin() {
 
   async function loadData() {
     setLoading(true)
-    const s = await fetch(`/api/admin/summary`, { credentials: 'include' })
+    const s = await fetch(`${API}/api/admin/summary`, {
+      credentials: 'include',
+    })
     const g = await fetch(
-      `/api/admin/guests?status=${status}&search=${encodeURIComponent(search)}`,
+      `${API}/api/admin/guests?status=${status}&search=${encodeURIComponent(
+        search
+      )}`,
       {
         credentials: 'include',
       }
@@ -201,7 +207,7 @@ export default function Admin() {
                           value={r.rsvpStatus ?? ''}
                           onChange={async (e) => {
                             const newVal = e.target.value || null
-                            await fetch('/api/admin/update', {
+                            await fetch(`${API}/api/admin/update`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               credentials: 'include',
@@ -282,7 +288,9 @@ function ManageInvitesPanel() {
 
   async function loadHouseholds() {
     setLoading(true)
-    const res = await fetch('/api/admin/households', { credentials: 'include' })
+    const res = await fetch(`${API}/api/admin/households`, {
+      credentials: 'include',
+    })
     if (res.ok) {
       const data = await res.json()
       setHouseholds(data)
@@ -313,7 +321,7 @@ function ManageInvitesPanel() {
   async function createHousehold(e: React.FormEvent) {
     e.preventDefault()
     try {
-      const res = await fetch('/api/admin/households', {
+      const res = await fetch(`${API}/api/admin/households`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -330,7 +338,7 @@ function ManageInvitesPanel() {
 
   async function updatePhone(id: string, newPhone: string) {
     try {
-      const res = await fetch(`/api/admin/households/${id}/phone`, {
+      const res = await fetch(`${API}/api/admin/households/${id}/phone`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -346,12 +354,15 @@ function ManageInvitesPanel() {
   async function addGuest(householdId: string) {
     const fullName = guestInputs[householdId]?.trim()
     if (!fullName) return
-    const res = await fetch(`/api/admin/households/${householdId}/guests`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ fullName }),
-    })
+    const res = await fetch(
+      `${API}/api/admin/households/${householdId}/guests`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ fullName }),
+      }
+    )
     if (!res.ok) alert('Failed to add guest')
     setGuestInputs((prev) => ({ ...prev, [householdId]: '' }))
     await loadHouseholds()
@@ -359,7 +370,7 @@ function ManageInvitesPanel() {
 
   async function deleteGuest(id: string) {
     if (!confirm('Remove this guest?')) return
-    const res = await fetch(`/api/admin/guests/${id}`, {
+    const res = await fetch(`${API}/api/admin/guests/${id}`, {
       method: 'DELETE',
       credentials: 'include',
     })
@@ -369,7 +380,7 @@ function ManageInvitesPanel() {
 
   async function runBulkUpsert() {
     setBulkResult(null)
-    const res = await fetch('/api/admin/bulk-upsert', {
+    const res = await fetch(`${API}/api/admin/bulk-upsert`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

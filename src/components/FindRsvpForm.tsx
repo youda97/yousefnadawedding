@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Card, SectionTitle, Label, TextInput, PrimaryButton } from './FormUI'
 
+const API = import.meta.env.VITE_API_BASE_URL || ''
+
 export const FindRsvpForm: React.FC<{ onCandidateFound: () => void }> = ({
   onCandidateFound,
 }) => {
@@ -22,7 +24,7 @@ export const FindRsvpForm: React.FC<{ onCandidateFound: () => void }> = ({
     setSubmitting(true)
 
     try {
-      const res = await fetch('/api/rsvp/search', {
+      const res = await fetch(`${API}/api/rsvp/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // keep cookies (candidate cookie)
