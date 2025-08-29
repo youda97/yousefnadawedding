@@ -45,10 +45,10 @@ export const VerifyByLast4Form: React.FC<{
     <Card>
       <SectionTitle
         title="Verify it's you"
-        subtitle="Enter the last 4 digits of your phone number"
+        subtitle="Enter the last 4 digits of the phone number that received the invitation"
       />
       <form onSubmit={submit}>
-        <Label htmlFor="last4">Last 4 digits</Label>
+        <Label htmlFor="last4">Last 4 digits of household phone number</Label>
         <TextInput
           id="last4"
           inputMode="numeric"
@@ -74,7 +74,7 @@ export const VerifyByLast4Form: React.FC<{
         </div>
         <p className="text-white/60 text-xs mt-3">
           For privacy, we'll only text a code if these digits match the number
-          on your invitation.
+          of the person who received the invitation for your household.
         </p>
       </form>
     </Card>
