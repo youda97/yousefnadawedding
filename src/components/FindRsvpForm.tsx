@@ -63,7 +63,11 @@ export const FindRsvpForm: React.FC<{ onCandidateFound: () => void }> = ({
         title="Be Our Guest"
         subtitle="Please reserve before September 20th, 2025."
       />
-      <form onSubmit={handleSubmit} aria-describedby="find-help find-error">
+      <form
+        onSubmit={handleSubmit}
+        aria-describedby="find-help find-error"
+        aria-busy={submitting}
+      >
         <Label htmlFor="fullName">Your full name</Label>
         <TextInput
           id="fullName"
@@ -83,7 +87,9 @@ export const FindRsvpForm: React.FC<{ onCandidateFound: () => void }> = ({
           </p>
         )}
         <div className="flex items-center gap-4 mt-4">
-          <PrimaryButton type="submit">Continue</PrimaryButton>
+          <PrimaryButton type="submit" disabled={submitting}>
+            {submitting ? 'Searching…' : 'Continue'}
+          </PrimaryButton>
         </div>
         <p className="text-white/80 text-sm mt-6">
           Can’t find your RSVP? Please contact{' '}
