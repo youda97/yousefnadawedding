@@ -22,7 +22,7 @@ export default function Hero() {
           <div className="slider-content sd-default-content mt-6 lg:mt-0">
             <div className="col-lg-12 text-center text-white">
               <span className="font-nav uppercase text-2xl opacity-90">
-                WE’RE GETTING MARRIED
+                WE'RE GETTING MARRIED
               </span>
               <h4 className="mt-4 md:mt-6 font-logo text-7xl [text-shadow:1px_3px_2px_rgba(0,0,0,0.6)]">
                 Save Our Date

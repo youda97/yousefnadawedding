@@ -68,7 +68,7 @@ export default function RSVP() {
 
             {step === 'otp' && (
               <OtpForm
-                // privacy: don’t reveal phone after last-4; use a generic subtitle in your OtpForm
+                // privacy: don't reveal phone after last-4; use a generic subtitle in your OtpForm
                 maskedPhone="your phone number"
                 onVerify={async () => {
                   // 1) fetch verified household

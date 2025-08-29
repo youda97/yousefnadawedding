@@ -46,7 +46,7 @@ export const OtpForm: React.FC<{
         return
       }
 
-      // 2) Tell the parent we’re good; parent can fetch /api/rsvp/household and render the next step
+      // 2) Tell the parent we're good; parent can fetch /api/rsvp/household and render the next step
       onVerify()
     } catch (err) {
       setError('Network error. Please try again.')

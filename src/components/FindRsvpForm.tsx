@@ -92,13 +92,13 @@ export const FindRsvpForm: React.FC<{ onCandidateFound: () => void }> = ({
           </PrimaryButton>
         </div>
         <p className="text-white/80 text-sm mt-6">
-          Can’t find your RSVP? Please contact{' '}
+          Can't find your RSVP? Please contact{' '}
           <a className="underline" href="mailto:ouda.yousef@gmail.com">
             ouda.yousef@gmail.com
           </a>
         </p>
         <p className="text-white/60 text-xs mt-2">
-          For privacy, we won’t show any names until you verify with a code.
+          For privacy, we won't show any names until you verify with a code.
         </p>
       </form>
     </Card>

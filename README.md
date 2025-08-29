@@ -20,7 +20,7 @@ npm run dev
 npm run build && npm run preview
 ```
 
-## What’s inside?
+## What's inside?
 
 - Vite 5 + React 18 + TypeScript 5
 - Tailwind CSS 3
