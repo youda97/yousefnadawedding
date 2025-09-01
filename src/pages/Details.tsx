@@ -53,6 +53,14 @@ export default function EventSection() {
                     13168 Ilderton Rd, Ilderton, Ontario
                   </span>
 
+                  <span className="mt-[2px] inline-flex items-center gap-1 text-[#649e93]">
+                    <i
+                      className="fa-solid fa-square-parking"
+                      aria-hidden="true"
+                    />
+                    <span>Free parking available on site</span>
+                  </span>
+
                   <p className="py-5 pr-5">
                     We're so excited to celebrate our wedding with you at the
                     Ilderton Community Centre in Ilderton, Ontario. Please come
