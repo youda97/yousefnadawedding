@@ -63,43 +63,68 @@ app.post("/api/rsvp/search", async (req, res) => {
 
 // POST /api/rsvp/otp/init   { last4 }
 app.post("/api/rsvp/otp/init", async (req, res) => {
-  const schema = z.object({ last4: z.string().regex(/^\d{4}$/) });
-  const { last4 } = schema.parse(req.body);
+  try {
+    const schema = z.object({ last4: z.string().regex(/^\d{4}$/) });
+    const { last4 } = schema.parse(req.body);
 
-  const cand = await verifyJWT<{ c: string[] }>(req.cookies.rv_cand);
-  if (!cand?.c?.length) return res.status(400).json({ error: "search_required" });
+    const cand = await verifyJWT<{ c: string[] }>(req.cookies.rv_cand);
+    if (!cand?.c?.length) {
+      console.warn("otp/init: no candidate cookie or verify failed");
+      return res.status(400).json({ error: "search_required" });
+    }
 
-  // Find unique household with this last4 among candidates
-  const households = await prisma.household.findMany({ where: { id: { in: cand.c }, phoneLast4: last4 } });
-  if (households.length !== 1) return res.status(400).json({ error: "not_verified" });
+    // Sanity log the candidate IDs and last4 (safe)
+    console.log("otp/init candidates:", cand.c, "last4:", last4);
 
-  const hh = households[0];
+    const households = await prisma.household.findMany({
+      where: { id: { in: cand.c }, phoneLast4: last4 },
+      select: { id: true, label: true, phoneLast4: true },
+    });
 
-  // block if last code was sent < 60 seconds ago
-  const existing = await prisma.otp.findFirst({
+    console.log("otp/init matches:", households.map(h => ({ id: h.id, last4: h.phoneLast4 })));
+
+    if (households.length === 0) {
+      return res.status(400).json({ error: "not_verified_no_match" });
+    }
+    if (households.length > 1) {
+      return res.status(400).json({ error: "not_verified_ambiguous" });
+    }
+
+    const hh = households[0];
+
+    // cooldown
+    const existing = await prisma.otp.findFirst({
       where: { householdId: hh.id },
       orderBy: { createdAt: "desc" },
-  })
-  if (existing && Date.now() - existing.createdAt.getTime() < 60_000) {
-      return res.status(429).json({ error: "cooldown" })
+    });
+    if (existing && Date.now() - existing.createdAt.getTime() < 60_000) {
+      return res.status(429).json({ error: "cooldown" });
+    }
+
+    const code = generateCode();
+    await prisma.otp.create({
+      data: {
+        householdId: hh.id,
+        codeHash: hashCode(code),
+        purpose: "rsvp",
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+
+    await sendOtpSms(hh.phoneLast4, code);
+
+    res.cookie("rv_otp", JSON.stringify({ hh: hh.id }), {
+      httpOnly: true,
+      sameSite: isProd ? "none" : "lax",
+      secure: isProd,
+      maxAge: 10 * 60 * 1000,
+    });
+
+    return res.json({ sent: true });
+  } catch (err: any) {
+    console.error("otp/init error", err?.message || err);
+    return res.status(400).json({ error: "bad_request" });
   }
-
-  const code = generateCode();
-  await prisma.otp.create({
-    data: {
-      householdId: hh.id,
-      codeHash: hashCode(code),
-      purpose: "rsvp",
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-    },
-  });
-
-  await sendOtpSms(hh.phone, code);
-
-  res.cookie("rv_otp", JSON.stringify({ hh: hh.id }), {
-    httpOnly: true, sameSite: isProd ? "none" : "lax", secure: isProd, maxAge: 10 * 60 * 1000,
-  });
-  res.json({ sent: true });
 });
 
 // POST /api/rsvp/otp/verify   { code }
