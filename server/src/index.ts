@@ -7,7 +7,7 @@ import { prisma } from "./lib/db.js";
 import { normalizeName } from "./lib/normalize.js";
 import { sign, verify as verifyJWT } from "./lib/jwt.js";
 import { generateCode, hashCode } from "./lib/otp.js";
-import { sendOtpSms } from "./lib/sms.js";
+import { sendOtp } from "./lib/sms.js";
 
 const app = express();
 const PORT = process.env.PORT || 8787;
@@ -111,7 +111,7 @@ app.post("/api/rsvp/otp/init", async (req, res) => {
       },
     });
 
-    await sendOtpSms(hh.phoneLast4, code);
+    await sendOtp(hh.phoneLast4, code);
 
     res.cookie("rv_otp", JSON.stringify({ hh: hh.id }), {
       httpOnly: true,
