@@ -42,7 +42,7 @@ export const VerifyByLast4Form: React.FC<{
             : err?.error === 'not_verified_ambiguous'
             ? 'We found more than one match. Try a more specific name.'
             : err?.error === 'cooldown'
-            ? 'Please wait a moment before requesting another code.'
+            ? 'Please wait a minute before trying again.'
             : err?.error === 'sms_failed'
             ? "We couldn't send a code to that number right now. Please contact us or try again later."
             : "We couldn't verify those digits. Try again or contact us."
