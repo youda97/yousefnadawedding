@@ -5,8 +5,9 @@ const API = import.meta.env.VITE_API_BASE_URL || ''
 
 export const VerifyByLast4Form: React.FC<{
   onBack: () => void
-  onOtpSent: () => void // advance to OTP screen if API says sent
-}> = ({ onBack, onOtpSent }) => {
+  onOtpSent: () => void
+  onBypass: () => void
+}> = ({ onBack, onOtpSent, onBypass }) => {
   const [last4, setLast4] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
@@ -37,13 +38,13 @@ export const VerifyByLast4Form: React.FC<{
           err?.error === 'search_required'
             ? 'Please search your name again.'
             : err?.error === 'not_verified_no_match'
-            ? 'Those digits didn’t match our records.'
+            ? "Those digits didn't match our records."
             : err?.error === 'not_verified_ambiguous'
             ? 'We found more than one match. Try a more specific name.'
             : err?.error === 'cooldown'
             ? 'Please wait a moment before requesting another code.'
             : err?.error === 'sms_failed'
-            ? 'We couldn’t send a code to that number right now. Please contact us or try again later.'
+            ? "We couldn't send a code to that number right now. Please contact us or try again later."
             : "We couldn't verify those digits. Try again or contact us."
         )
         return
@@ -53,13 +54,7 @@ export const VerifyByLast4Form: React.FC<{
 
       // If backend bypassed OTP, we already have a full session cookie (rv_sess)
       if (data?.bypass) {
-        const hh = await fetch(`${API}/api/rsvp/household`, {
-          credentials: 'include',
-        })
-        const payload = await hh.json()
-        // Call your parent to set state & advance directly to household screen
-        // e.g. props.onBypassVerified(payload.household, payload.guests)
-        onOtpSent?.() // or a new callback; then parent fetches household & navigates
+        onBypass()
         return
       }
 
@@ -93,7 +88,7 @@ export const VerifyByLast4Form: React.FC<{
         {error && <p className="text-red-200 text-sm mt-2">{error}</p>}
         <div className="flex items-center gap-4 mt-6">
           <PrimaryButton type="submit" disabled={sending}>
-            {sending ? 'Sending…' : 'Send code'}
+            {sending ? 'Verifying...' : 'Continue'}
           </PrimaryButton>
           <button
             type="button"

@@ -15,6 +15,7 @@ export default function RSVP() {
   const [direction, setDirection] = useState(1)
   const [household, setHousehold] = useState<Household | null>(null)
   const [finalGuests, setFinalGuests] = useState<Guest[] | null>(null)
+  const [skippedOtp, setSkippedOtp] = useState(false)
 
   const go = (next: Step) => {
     setDirection(1)
@@ -23,6 +24,35 @@ export default function RSVP() {
   const back = (prev: Step) => {
     setDirection(-1)
     setStep(prev)
+  }
+
+  async function fetchAndSetHousehold() {
+    const res = await fetch(`${API}/api/rsvp/household`, {
+      credentials: 'include',
+    })
+    if (!res.ok) {
+      back('verifyMethod')
+      return false
+    }
+    const data = await res.json()
+    const mapped: Household = {
+      id: data.household.id,
+      displayName: data.household.label,
+      guests: data.guests.map((g: any) => ({
+        id: g.id,
+        fullName: g.fullName,
+        rsvp: g.rsvp ?? undefined,
+      })),
+    }
+    setHousehold(mapped)
+    return true
+  }
+
+  async function handleBypass() {
+    const ok = await fetchAndSetHousehold()
+    if (!ok) return
+    setSkippedOtp(true)
+    go('household')
   }
 
   async function handleSubmitAll(guests: Guest[]) {
@@ -56,13 +86,22 @@ export default function RSVP() {
             transition={{ duration: 0.35, ease: 'easeInOut' }}
           >
             {step === 'find' && (
-              <FindRsvpForm onCandidateFound={() => go('verifyMethod')} />
+              <FindRsvpForm
+                onCandidateFound={() => {
+                  setSkippedOtp(false)
+                  go('verifyMethod')
+                }}
+              />
             )}
 
             {step === 'verifyMethod' && (
               <VerifyByLast4Form
                 onBack={() => back('find')}
-                onOtpSent={() => go('otp')}
+                onOtpSent={() => {
+                  setSkippedOtp(false)
+                  go('otp')
+                }}
+                onBypass={handleBypass}
               />
             )}
 
@@ -71,31 +110,9 @@ export default function RSVP() {
                 // privacy: don't reveal phone after last-4; use a generic subtitle in your OtpForm
                 maskedPhone="your phone number"
                 onVerify={async () => {
-                  // 1) fetch verified household
-                  const res = await fetch(`${API}/api/rsvp/household`, {
-                    credentials: 'include',
-                  })
-                  if (!res.ok) {
-                    // session expired or similar
-                    back('verifyMethod')
-                    return
-                  }
-                  const data = await res.json()
-
-                  // 2) adapt API payload to your UI types
-                  const mapped: Household = {
-                    id: data.household.id,
-                    displayName: data.household.label, // map label -> displayName
-                    guests: data.guests.map((g: any) => ({
-                      id: g.id,
-                      fullName: g.fullName,
-                      // backend returns null when unanswered; your UI likes undefined
-                      rsvp: g.rsvp ?? undefined,
-                    })),
-                  }
-
-                  // 3) store it and go to the household step
-                  setHousehold(mapped)
+                  const ok = await fetchAndSetHousehold()
+                  if (!ok) return
+                  setSkippedOtp(false)
                   go('household')
                 }}
                 onChangeMethod={() => back('verifyMethod')}
@@ -105,7 +122,7 @@ export default function RSVP() {
             {step === 'household' && household && (
               <HouseholdRsvpPage
                 household={household}
-                onBack={() => back('otp')}
+                onBack={() => back(skippedOtp ? 'verifyMethod' : 'otp')}
                 onSubmitAll={handleSubmitAll}
               />
             )}
