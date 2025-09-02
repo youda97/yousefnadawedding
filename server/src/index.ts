@@ -7,7 +7,7 @@ import { prisma } from "./lib/db.js";
 import { normalizeName } from "./lib/normalize.js";
 import { sign, verify as verifyJWT } from "./lib/jwt.js";
 import { generateCode, hashCode } from "./lib/otp.js";
-import { sendOtp } from "./lib/sms.js";
+import { sendOtpSms } from "./lib/sms.js";
 
 const app = express();
 const PORT = process.env.PORT || 8787;
@@ -63,68 +63,107 @@ app.post("/api/rsvp/search", async (req, res) => {
 
 // POST /api/rsvp/otp/init   { last4 }
 app.post("/api/rsvp/otp/init", async (req, res) => {
+  const schema = z.object({ last4: z.string().regex(/^\d{4}$/) });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "bad_input" });
+  const { last4 } = parsed.data;
+
+  // Verify search cookie
+  let cand: { c: string[] } | null = null;
   try {
-    const schema = z.object({ last4: z.string().regex(/^\d{4}$/) });
-    const { last4 } = schema.parse(req.body);
+    cand = await verifyJWT<{ c: string[] }>(req.cookies.rv_cand);
+  } catch (e) {
+    console.warn("otp/init: rv_cand verify threw:", (e as any)?.message);
+  }
+  if (!cand?.c?.length) {
+    return res.status(400).json({ error: "search_required" });
+  }
 
-    const cand = await verifyJWT<{ c: string[] }>(req.cookies.rv_cand);
-    if (!cand?.c?.length) {
-      console.warn("otp/init: no candidate cookie or verify failed");
-      return res.status(400).json({ error: "search_required" });
-    }
+  // Filter by last4 among candidates
+  const households = await prisma.household.findMany({
+    where: { id: { in: cand.c }, phoneLast4: last4 },
+    select: { id: true, label: true, phone: true, phoneLast4: true },
+  });
 
-    // Sanity log the candidate IDs and last4 (safe)
-    console.log("otp/init candidates:", cand.c, "last4:", last4);
+  if (households.length === 0) {
+    return res.status(400).json({ error: "not_verified_no_match" });
+  }
+  if (households.length > 1) {
+    return res.status(400).json({ error: "not_verified_ambiguous" });
+  }
 
-    const households = await prisma.household.findMany({
-      where: { id: { in: cand.c }, phoneLast4: last4 },
-      select: { id: true, label: true, phoneLast4: true },
+  const hh = households[0];
+
+  // cooldown (60s)
+  const existing = await prisma.otp.findFirst({
+    where: { householdId: hh.id },
+    orderBy: { createdAt: "desc" },
+  });
+  if (existing && Date.now() - existing.createdAt.getTime() < 60_000) {
+    return res.status(429).json({ error: "cooldown" });
+  }
+
+  // Generate a code
+  const code = generateCode();
+
+  let bypass = false;
+
+  // If you want to also bypass on demand (for testing), keep this
+  try {
+    await sendOtpSms(hh.phone, code); // ← Twilio send
+  } catch (e: any) {
+    // Log Twilio failure and SWITCH TO BYPASS
+    console.error("sendOtpSms failed; bypassing OTP:", {
+      code: e?.code,
+      message: e?.message,
     });
-
-    console.log("otp/init matches:", households.map(h => ({ id: h.id, last4: h.phoneLast4 })));
-
-    if (households.length === 0) {
-      return res.status(400).json({ error: "not_verified_no_match" });
-    }
-    if (households.length > 1) {
-      return res.status(400).json({ error: "not_verified_ambiguous" });
-    }
-
-    const hh = households[0];
-
-    // cooldown
-    const existing = await prisma.otp.findFirst({
-      where: { householdId: hh.id },
-      orderBy: { createdAt: "desc" },
-    });
-    if (existing && Date.now() - existing.createdAt.getTime() < 60_000) {
-      return res.status(429).json({ error: "cooldown" });
-    }
-
-    const code = generateCode();
+    bypass = true;
+  }
+  
+  if (bypass) {
+    // (Optional) write a dummy OTP row so your cooldown still works & you have an audit trail
     await prisma.otp.create({
       data: {
         householdId: hh.id,
-        codeHash: hashCode(code),
-        purpose: "rsvp",
+        codeHash: "BYPASS",          // your model expects a string
+        purpose: "bypass",           // distinguish from real OTPs
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       },
     });
-
-    await sendOtp(hh.phoneLast4, code);
-
-    res.cookie("rv_otp", JSON.stringify({ hh: hh.id }), {
+  
+    // Immediately create a full session (skip OTP page entirely)
+    const session = await sign({ hh: hh.id }, "7d");
+    res.cookie("rv_sess", session, {
       httpOnly: true,
       sameSite: isProd ? "none" : "lax",
       secure: isProd,
-      maxAge: 10 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
-    return res.json({ sent: true });
-  } catch (err: any) {
-    console.error("otp/init error", err?.message || err);
-    return res.status(400).json({ error: "bad_request" });
+    // clear temp cookies
+    res.clearCookie("rv_cand");
+    res.clearCookie("rv_otp");
+  
+    return res.json({ sent: false, bypass: true }); // tell the client to skip OTP UI
   }
+  
+  // If not bypassing: proceed with normal OTP flow
+  await prisma.otp.create({
+    data: {
+      householdId: hh.id,
+      codeHash: hashCode(code),
+      purpose: "rsvp",
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    },
+  });
+  
+  res.cookie("rv_otp", JSON.stringify({ hh: hh.id }), {
+    httpOnly: true,
+    sameSite: isProd ? "none" : "lax",
+    secure: isProd,
+    maxAge: 10 * 60 * 1000,
+  });
+  
+  return res.json({ sent: true, bypass: false });
 });
 
 // POST /api/rsvp/otp/verify   { code }
