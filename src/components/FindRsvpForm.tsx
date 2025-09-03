@@ -61,7 +61,7 @@ export const FindRsvpForm: React.FC<{ onCandidateFound: () => void }> = ({
     <Card>
       <SectionTitle
         title="Be Our Guest"
-        subtitle="Please reserve before September 14th, 2025."
+        subtitle="Please reserve before September 20th, 2025."
       />
       <form
         onSubmit={handleSubmit}
