@@ -79,7 +79,7 @@ export const FindRsvpForm: React.FC<{ onCandidateFound: () => void }> = ({
           inputMode="text"
         />
         <p id="find-help" className="text-white/70 text-sm mt-2">
-          Try the name used on your invitation. Nicknames are OK.
+          Try the name used on your invitation.
         </p>
         {error && (
           <p id="find-error" className="text-red-200 text-sm mt-2">
