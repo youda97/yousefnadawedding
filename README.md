@@ -29,4 +29,4 @@ npm run build && npm run preview
 
 ---
 
-Made with ♥. May Allah bless your marriage.
+Made with ♥. May Allah bless our marriage.
