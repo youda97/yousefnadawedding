@@ -34,7 +34,7 @@ app.post("/api/rsvp/search", async (req, res) => {
   const schema = z.object({ name: z.string().min(2) });
   const { name } = schema.parse(req.body);
 
-  const tokens = normalizeName(name).split(" ");
+  const tokens = normalizeName(name).split(" ").filter(t => t.length > 1);
   // simple fuzzy: all tokens must appear in first/last/display
   const guests = await prisma.guest.findMany({
     where: {
