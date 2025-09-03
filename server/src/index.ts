@@ -25,6 +25,11 @@ app.use(cookieParser());
 const ADMIN_COOKIE = "rv_admin";
 const ADMIN_TTL_MS = 24 * 60 * 60 * 1000; // 1 day
 
+const BYPASS_PREFIXES = (process.env.BYPASS_E164_PREFIXES || "")
+  .split(",").map(s => s.trim()).filter(Boolean);
+const shouldBypassByPrefix = (phone: string) =>
+  BYPASS_PREFIXES.some(p => phone.startsWith(p));
+
 function isAdmin(req: express.Request) {
   return req.cookies?.[ADMIN_COOKIE] === "ok";
 }
@@ -120,7 +125,7 @@ app.post("/api/rsvp/otp/init", async (req, res) => {
     bypass = true;
   }
   
-  if (bypass) {
+  if (bypass || shouldBypassByPrefix(hh.phone)) {
     // (Optional) write a dummy OTP row so your cooldown still works & you have an audit trail
     await prisma.otp.create({
       data: {
