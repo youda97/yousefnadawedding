@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import Confetti from 'react-confetti'
 import { useWindowSize } from 'react-use'
+import { CatBallPit } from '../components/catBallPit'
 
 type TimeParts = {
   days: number
@@ -41,9 +42,7 @@ export default function CountdownSection() {
     if (time.completed && audioRef.current) {
       audioRef.current
         .play()
-        .then(() => {
-          setIsPlaying(true)
-        })
+        .then(() => setIsPlaying(true))
         .catch(() => {
           // Autoplay blocked → show button manually
           setIsPlaying(false)
@@ -52,12 +51,8 @@ export default function CountdownSection() {
     }
   }, [time.completed])
 
-  // When the audio ends, reset state
-  const handleEnded = () => {
-    setIsPlaying(false)
-  }
+  const handleEnded = () => setIsPlaying(false)
 
-  // Toggle play/pause
   const togglePlay = () => {
     if (!audioRef.current) return
     if (isPlaying) {
@@ -67,12 +62,8 @@ export default function CountdownSection() {
     } else {
       audioRef.current
         .play()
-        .then(() => {
-          setIsPlaying(true)
-        })
-        .catch(() => {
-          setIsPlaying(false)
-        })
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false))
     }
   }
 
@@ -86,25 +77,51 @@ export default function CountdownSection() {
       id="countdown"
       className="count-down-area count-down-area-2 count-down-area-sub scroll-mt-[75px]"
     >
-      <section className="relative countdown-background py-[50px] md:py-[100px] text-white">
-        <div className="container countdown-container">
+      <section className="relative countdown-background py-[50px] md:py-[100px] text-white overflow-hidden">
+        {time.completed && isPlaying && (
+          <CatBallPit
+            images={[
+              '/cats/c1.jpeg',
+              '/cats/c2.jpeg',
+              '/cats/c3.jpeg',
+              '/cats/c4.jpeg',
+              '/cats/c5.jpeg',
+              '/cats/c6.jpeg',
+              '/cats/c7.jpeg',
+              '/cats/c8.jpeg',
+              '/cats/c9.jpeg',
+              '/cats/c10.jpeg',
+              '/cats/c11.jpeg',
+              '/cats/c12.jpeg',
+              '/cats/c13.jpeg',
+              '/cats/c14.jpeg',
+              '/cats/c15.jpeg',
+              '/cats/c16.jpeg',
+              '/cats/c17.jpeg',
+            ]}
+            gravity={0.8}
+            repeatLimit={5}
+          />
+        )}
+
+        <div className="container countdown-container relative z-20">
           <div className="text-center relative">
             <h2
               className="
-                    m-0 mb-[20px] lg:mb-[40px] flex w-full flex-col items-center justify-center
-                    text-[60px]                      
-                    max-[1199px]:text-[62px]        
-                    max-[767px]:text-[50px]          
-                    font-logo
-                "
+                m-0 mb-[20px] lg:mb-[40px] flex w-full flex-col items-center justify-center
+                text-[60px]
+                max-[1199px]:text-[62px]
+                max-[767px]:text-[50px]
+                font-logo
+              "
             >
               <span
                 className="
-                    mb-[0.6em] block
-                    text-[25px]                    
-                    max-[1199px]:text-[25px]      
-                    max-[767px]:text-[20px]    
-                    font-nav  
+                  mb-[0.6em] block
+                  text-[25px]
+                  max-[1199px]:text-[25px]
+                  max-[767px]:text-[20px]
+                  font-nav
                 "
               >
                 We Are Waiting For.....
@@ -118,9 +135,9 @@ export default function CountdownSection() {
               <div
                 id="clock"
                 className="
-                    mx-auto mt-5 justify-items-center  
-                    grid grid-cols-2 gap-4       
-                    md:inline-flex md:flex-wrap md:justify-center md:gap-6 
+                  mx-auto mt-5 justify-items-center
+                  grid grid-cols-2 gap-4
+                  md:inline-flex md:flex-wrap md:justify-center md:gap-6
                 "
               >
                 <TimeBox value={pad2(time.days)} label="Days" />
@@ -132,8 +149,8 @@ export default function CountdownSection() {
 
             {time.completed && (
               <>
-                <div className="fixed -top-6 left-0 mt-6 flex flex-col items-center justify-center">
-                  {/* Full screen confetti */}
+                {/* Confetti */}
+                <div className="fixed -top-6 left-0 mt-6 flex flex-col items-center justify-center z-30 pointer-events-none">
                   <Confetti
                     width={width}
                     height={height}
@@ -160,7 +177,7 @@ export default function CountdownSection() {
                 {/* Floating emojis */}
                 <div
                   className={`bottom-0 flex gap-4 text-4xl justify-center mt-8 ${
-                    isPlaying && 'animate-bounce'
+                    isPlaying ? 'animate-bounce' : ''
                   }`}
                 >
                   <span role="img" aria-label="ring">
@@ -195,22 +212,22 @@ function TimeBox({ value, label }: { value: string; label: string }) {
   return (
     <div
       className="
-          box flex items-center justify-center 
-          w-[115px] h-[118px] 
-          sm:w-[130px] sm:h-[132px]       
-          bg-[url('/clock-bg.png')] bg-cover bg-center bg-no-repeat border-0 pb-0
-          lg:w-[176px] lg:h-[179px]    
-        "
+        box flex items-center justify-center
+        w-[115px] h-[118px]
+        sm:w-[130px] sm:h-[132px]
+        bg-[url('/clock-bg.png')] bg-cover bg-center bg-no-repeat border-0 pb-0
+        lg:w-[176px] lg:h-[179px]
+      "
       role="group"
       aria-label={`${label}: ${value}`}
     >
       <div className="flex flex-col items-center justify-center">
         <div
           className="
-              leading-none pt-[15px]
-              text-[40px]           
-              lg:text-[54px]       
-            "
+            leading-none pt-[15px]
+            text-[40px]
+            lg:text-[54px]
+          "
           style={{ fontFamily: '"Great Vibes", cursive' }}
         >
           {value}

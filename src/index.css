@@ -166,3 +166,20 @@
     }
 }
   
+/* Fall from above, overshoot a hair, and settle */
+@keyframes drop-bounce {
+    0%   { transform: translateY(-120vh) scale(1); }
+    85%  { transform: translateY(-6px)    scale(1.02); } /* tiny overshoot */
+    100% { transform: translateY(0)        scale(1); }
+  }
+  
+  /* Little roll to imply “ball” at the floor */
+  @keyframes roll-right {
+    0%   { transform: translateY(0) translateX(0) rotate(0deg); }
+    100% { transform: translateY(0) translateX(6px) rotate(10deg); }
+  }
+  @keyframes roll-left {
+    0%   { transform: translateY(0) translateX(0) rotate(0deg); }
+    100% { transform: translateY(0) translateX(-6px) rotate(-10deg); }
+  }
+  
