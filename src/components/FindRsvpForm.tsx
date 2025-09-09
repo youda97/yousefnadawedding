@@ -15,11 +15,6 @@ export const FindRsvpForm: React.FC<{ onCandidateFound: () => void }> = ({
     e.preventDefault()
     const trimmed = name.trim()
 
-    if (!trimmed || trimmed.split(/\s+/).length < 2) {
-      setError('Please enter your first and last name.')
-      return
-    }
-
     setError(null)
     setSubmitting(true)
 
